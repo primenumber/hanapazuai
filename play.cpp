@@ -166,23 +166,23 @@ bool try_bloom(Board &bd, Unit &u) {
     return true;
   } else return false;
 }
-int bloom(Board &bd) {
+bool bloom(Board &bd) {
   std::sort(std::begin(bd.units), std::end(bd.units));
-  int num = 0;
+  bool bloomed = false;
   for (Unit &u : bd.units) {
     bool is_bloom = try_bloom(bd, u);
-    if (is_bloom) ++num;
+    if (is_bloom) bloomed = true;
   }
-  return num;
+  return bloomed;
 }
 std::tuple<Board, int> fix(Board &&bd) {
   int elapsed = 10;
   while(true) {
     int max_drop_h = drop(bd);
     elapsed += max_drop_h * 2;
-    int bloom_num = bloom(bd);
-    elapsed += bloom_num * 35;
-    if (max_drop_h == 0 && bloom_num == 0) break;
+    bool bloomed = bloom(bd);
+    elapsed += bloomed ? 35 : 0;
+    if (max_drop_h == 0 && !bloomed) break;
   }
   return std::make_tuple(bd, elapsed);
 }
