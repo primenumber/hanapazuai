@@ -76,6 +76,11 @@ bool operator<(const Unit &lhs, const Unit &rhs) {
   if (lb == rb) return lhs.x() < rhs.x();
   else return lb > rb;
 }
+bool Board::is_goal() const {
+  for (const Unit &u : units)
+    if (u.is_seed() && !u.seed.is_bloomed) return false;
+  return true;
+}
 
 int char2dir(char c) {
   switch(c) {
@@ -136,7 +141,6 @@ b_ary table_from_file(std::ifstream &ifs) {
   }
   return table;
 }
-
 Board board_from_file(const std::string &filename) {
   std::ifstream ifs(filename);
   Board bd;

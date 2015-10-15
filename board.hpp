@@ -69,6 +69,7 @@ bool operator<(const Unit &, const Unit &);
 struct Board {
   b_ary tb;
   std::vector<Unit> units;
+  bool is_goal() const;
 };
 
 Board board_from_file(const std::string & filename);
