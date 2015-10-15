@@ -248,4 +248,10 @@ boost::optional<std::tuple<Board, int>> try_move(const Board &bd, int x, int y) 
     return boost::none;
   }
 }
-
+boost::optional<State> try_move(const State &st, int x, int y) {
+  if (auto res = try_move(st.bd, x, y)) {
+    return State(std::get<0>(*res), std::get<1>(*res) + st.score);
+  } else {
+    return boost::none;
+  }
+}
