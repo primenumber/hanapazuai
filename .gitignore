@@ -1,4 +1,5 @@
 *.swp
+*.a
 input
 ai
 CMakeCache.txt
