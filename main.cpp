@@ -26,7 +26,7 @@ void play(State state) {
   finalize();
 }
 
-void search(State state) {
+void solve(State state) {
   auto res = find_answer(state);
   for (pos &p : res) {
     std::cout << p.x << ' ' << p.y << std::endl;
@@ -34,7 +34,19 @@ void search(State state) {
 }
 
 int main(int argc, char **argv) {
-  State state(board_from_file(argv[1]));
-  play(state);
+  if (argc < 3) {
+    std::cerr << "usage: " << argv[0] << " COMMAND INPUT" << std::endl;
+    std::cerr << "COMMAND:" << std::endl;
+    std::cerr << "	play play game" << std::endl;
+    std::cerr << "	solve run solver" << std::endl;
+    return 1;
+  }
+  State state(board_from_file(argv[2]));
+  std::string command = argv[1];
+  if (command == "play") {
+    play(state);
+  } else if (command == "solve") {
+    solve(state);
+  }
   return 0;
 }
