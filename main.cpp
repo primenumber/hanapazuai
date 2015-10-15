@@ -1,12 +1,13 @@
+#include <iostream>
 #include <ncurses.h>
 #include "board.hpp"
 #include "visualize.hpp"
 #include "play.hpp"
+#include "search.hpp"
 
-int main(int argc, char **argv) {
+void play(State state) {
   init();
-  State state(board_from_file(argv[1]));
-  while(true) {
+  while(!state.bd.is_goal()) {
     visualize(state.bd);
     move(12, 0);
     addstr("command> ");
@@ -23,5 +24,17 @@ int main(int argc, char **argv) {
     }
   }
   finalize();
+}
+
+void search(State state) {
+  auto res = find_answer(state);
+  for (pos &p : res) {
+    std::cout << p.x << ' ' << p.y << std::endl;
+  }
+}
+
+int main(int argc, char **argv) {
+  State state(board_from_file(argv[1]));
+  play(state);
   return 0;
 }
