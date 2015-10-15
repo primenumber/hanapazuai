@@ -1,6 +1,18 @@
 #include "play.hpp"
 #include <cassert>
 
+b_ary to_b_ary(const Board &bd) {
+  b_ary table = bd.tb;
+  for (int i = 0; i < (int)bd.units.size(); ++i) {
+    const Unit &u = bd.units[i];
+    for (int j = 0; j < u.height(); ++j) {
+      for (int k = 0; k < u.width(); ++k) {
+        table[u.y()+j][u.x()+k] = i;
+      }
+    }
+  }
+  return table;
+}
 bool is_hit(const Seed &s, int x, int y) {
   if (s.x == x && s.y == y) return true;
   int bx, by;
@@ -29,6 +41,20 @@ boost::optional<Unit &> get_unit(Board &bd, int x, int y) {
   }
   return boost::none;
 }
+boost::optional<const Unit &> get_unit(
+    const Board &bd, const b_ary &table, int x, int y) {
+  if (table[y][x] < (char)bd.units.size())
+    return bd.units[table[y][x]];
+  else
+    return boost::none;
+}
+boost::optional<Unit &> get_unit(
+    Board &bd, const b_ary &table, int x, int y) {
+  if (table[y][x] < (char)bd.units.size())
+    return bd.units[table[y][x]];
+  else
+    return boost::none;
+}
 int flower_color(const Board &bd, int x, int y) {
   if (char2clr(bd.tb[y][x]) >= 0) return char2clr(bd.tb[y][x]);
   if (auto opt_unit = get_unit(bd, x, y)) {
@@ -51,6 +77,14 @@ bool is_conflict(const b_ary &table, const Unit &unit) {
       if (table.at(unit.y()+i).at(unit.x()+j) != '.') return true;
   return false;
 }
+bool is_conflict_table(const b_ary &table, const Unit &unit, const int id) {
+  for (int i = 0; i < unit.height(); ++i)
+    for (int j = 0; j < unit.width(); ++j) {
+      char data = table.at(unit.y()+i).at(unit.x()+j);
+      if (data != '.' && data != id) return true;
+    }
+  return false;
+}
 std::pair<Unit, Unit> swap_unit(const Unit &lunit, const Unit &runit) {
   Unit newl = runit, newr = lunit;
   newl.move_left();
@@ -62,19 +96,10 @@ int drop(Board &bd) {
   int max_drop_h = 0;
   for (int i = 0; i < (int)bd.units.size(); ++i) {
     Unit nx_unit = bd.units[i];
+    b_ary tb = to_b_ary(bd);
     for (int j = 0;; ++j) {
       nx_unit.move_down();
-      bool ok = true;
-      if (is_conflict(bd.tb, nx_unit)) ok = false;
-      else {
-        for (int k = 0; k < i; ++k) {
-          if (is_conflict(bd.units[k], nx_unit)) {
-            ok = false;
-            break;
-          }
-        }
-      }
-      if (!ok) {
+      if (is_conflict_table(tb, nx_unit, i)) {
         max_drop_h = std::max(max_drop_h, j);
         nx_unit.move_up();
         bd.units[i] = nx_unit;
