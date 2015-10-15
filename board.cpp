@@ -1,4 +1,5 @@
 #include "board.hpp"
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -80,6 +81,13 @@ bool Board::is_goal() const {
   for (const Unit &u : units)
     if (u.is_seed() && !u.seed.is_bloomed) return false;
   return true;
+}
+bool operator==(const Board &lhs, const Board &rhs) {
+  if (lhs.tb != rhs.tb) return false;
+  std::vector<Unit> lunits = lhs.units, runits = rhs.units;
+  std::sort(std::begin(lunits), std::end(lunits));
+  std::sort(std::begin(runits), std::end(runits));
+  return lunits == runits;
 }
 
 int char2dir(char c) {

@@ -71,5 +71,6 @@ struct Board {
   std::vector<Unit> units;
   bool is_goal() const;
 };
+bool operator==(const Board &, const Board &);
 
 Board board_from_file(const std::string & filename);
