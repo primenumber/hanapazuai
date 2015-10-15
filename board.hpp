@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <tuple>
-#include <boost/optional.hpp>
 #include <boost/operators.hpp>
 
 using line = std::array<char, 14>;
@@ -71,10 +70,5 @@ struct Board {
   b_ary tb;
   std::vector<Unit> units;
 };
-
-bool is_movable(const Board &, int x, int y);
-// (next_board, elapsed_time)
-boost::optional<std::tuple<Board, int>> try_move(const Board &, int x, int y);
-//std::tuple<Board, int> move(const Board &, int x, int y);
 
 Board board_from_file(const std::string & filename);
