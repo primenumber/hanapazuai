@@ -32,7 +32,7 @@ void play(State state) {
 void solve(State state) {
   auto res = find_answer(state);
   for (pos &p : res) {
-    std::cout << p.x << ' ' << p.y << std::endl;
+    std::cout << p.y << ' ' << p.x << std::endl;
   }
 }
 
@@ -47,7 +47,7 @@ void simulate(State state) {
     std::stringstream ss;
     ss << line;
     int x, y;
-    ss >> x >> y;
+    ss >> y >> x;
     state = *try_move(state, x, y);
     nanosleep(&ts, nullptr);
   }
