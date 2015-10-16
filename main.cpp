@@ -1,4 +1,6 @@
+#include <ctime>
 #include <iostream>
+#include <sstream>
 #include <ncurses.h>
 #include "board.hpp"
 #include "visualize.hpp"
@@ -33,12 +35,34 @@ void solve(State state) {
   }
 }
 
+void simulate(State state) {
+  init();
+  std::string line;
+  timespec ts;
+  ts.tv_sec = 1;
+  ts.tv_nsec = 0;
+  while(std::getline(std::cin, line)) {
+    visualize(state.bd);
+    std::stringstream ss;
+    ss << line;
+    int x, y;
+    ss >> x >> y;
+    state = *try_move(state, x, y);
+    nanosleep(&ts, nullptr);
+  }
+  visualize(state.bd);
+  nanosleep(&ts, nullptr);
+  finalize();
+  std::cerr << "score: " << state.score << std::endl;
+}
+
 int main(int argc, char **argv) {
   if (argc < 3) {
     std::cerr << "usage: " << argv[0] << " COMMAND INPUT" << std::endl;
     std::cerr << "COMMAND:" << std::endl;
     std::cerr << "	play play game" << std::endl;
     std::cerr << "	solve run solver" << std::endl;
+    std::cerr << "	simulate simulation" << std::endl;
     return 1;
   }
   State state(board_from_file(argv[2]));
@@ -47,6 +71,8 @@ int main(int argc, char **argv) {
     play(state);
   } else if (command == "solve") {
     solve(state);
+  } else if (command == "simulate") {
+    simulate(state);
   }
   return 0;
 }
