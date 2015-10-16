@@ -94,15 +94,16 @@ std::pair<Unit, Unit> swap_unit(const Unit &lunit, const Unit &runit) {
 int drop(Board &bd) {
   std::sort(std::begin(bd.units), std::end(bd.units));
   int max_drop_h = 0;
+  b_ary tb = to_b_ary(bd);
   for (int i = 0; i < (int)bd.units.size(); ++i) {
     Unit nx_unit = bd.units[i];
-    b_ary tb = to_b_ary(bd);
     for (int j = 0;; ++j) {
       nx_unit.move_down();
       if (is_conflict_table(tb, nx_unit, i)) {
         max_drop_h = std::max(max_drop_h, j);
         nx_unit.move_up();
         bd.units[i] = nx_unit;
+        tb = to_b_ary(bd);
         break;
       }
     }
