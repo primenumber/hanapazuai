@@ -26,6 +26,7 @@ void play(State state) {
     }
   }
   finalize();
+  std::cerr << state.score << std::endl;
 }
 
 void solve(State state) {
