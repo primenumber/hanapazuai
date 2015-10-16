@@ -1,5 +1,6 @@
 #pragma once
 #include <cstring>
+#include <algorithm>
 #include <array>
 #include <vector>
 #include <string>
@@ -102,9 +103,11 @@ class hash<Unit> {
 template <>
 class hash<vector<Unit>> {
  public:
-  size_t operator()(const std::vector<Unit> &units) const {
+  size_t operator()(const vector<Unit> &units) const {
     size_t res = 0;
-    for (const Unit &u : units) {
+    vector<Unit> cp = units;
+    sort(begin(cp), end(cp));
+    for (const Unit &u : cp) {
       res += hash<Unit>()(u);
       res *= 17;
     }
