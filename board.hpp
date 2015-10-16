@@ -7,8 +7,11 @@
 #include <tuple>
 #include <boost/operators.hpp>
 
-using line = std::array<char, 14>;
-using b_ary = std::array<line, 10>;
+template <typename T>
+using line = std::array<T, 14>;
+template <typename T>
+using table_t = std::array<line<T>, 10>;
+using b_ary = table_t<char>;
 
 // URDL -> 0123
 int char2dir(char);
