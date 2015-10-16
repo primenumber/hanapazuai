@@ -187,7 +187,7 @@ bool try_bloom(Board &bd, Unit &u) {
     return true;
   }
   if (can_push(bd, u, (s.dir+2)%4)) {
-    push(bd, u, (s.dir+2)%4, false);
+    push(bd, u, (s.dir+2)%4);
     s.is_bloomed = true;
     return true;
   } else return false;
