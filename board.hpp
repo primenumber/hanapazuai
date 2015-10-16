@@ -74,3 +74,50 @@ struct Board {
 bool operator==(const Board &, const Board &);
 
 Board board_from_file(const std::string & filename);
+
+namespace std {
+
+template <>
+class hash<Block> {
+ public:
+  size_t operator()(const Block &b) const {
+    return b.x+b.y*14+b.w*14*10+b.h*14*10*14;
+  }
+};
+template <>
+class hash<Seed> {
+ public:
+  size_t operator()(const Seed &s) const {
+    return s.x+s.y*14+s.color*14*10+s.dir*14*10*3+s.is_bloomed*14*10*3*4;
+  }
+};
+template <>
+class hash<Unit> {
+ public:
+  size_t operator()(const Unit &u) const {
+    if (u.is_seed()) return hash<Seed>()(u.seed);
+    else return hash<Block>()(u.block);
+  }
+};
+template <>
+class hash<vector<Unit>> {
+ public:
+  size_t operator()(const std::vector<Unit> &units) const {
+    size_t res = 0;
+    for (const Unit &u : units) {
+      res += hash<Unit>()(u);
+      res *= 17;
+    }
+    return res;
+  }
+};
+template <>
+class hash<Board> {
+ public:
+  size_t operator()(const Board &b) const {
+    return hash<vector<Unit>>()(b.units);
+  }
+};
+
+} // namespace std
+  
