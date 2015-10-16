@@ -23,7 +23,7 @@ boost::optional<std::vector<pos>> dfs(const State &st, int rem,
   return boost::none;
 }
 std::vector<pos> find_answer(const State &st) {
-  for (int i = 10; i <= 2000; i += 10) {
+  for (int i = 30; i <= 2000; i += 30) {
     std::unordered_map<Board, int> memo;
     std::cerr << i << std::endl;
     if (auto opt_ans = dfs(st, i, Board(), memo)) {
