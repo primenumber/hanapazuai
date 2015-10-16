@@ -3,16 +3,32 @@
 #include <unordered_map>
 #include <boost/optional.hpp>
 
+enum class Type {
+  NONE,
+  GOAL,
+  DFS
+};
+
+Type need_dfs(const State &st, int rem,
+    std::unordered_map<Board, int> &memo,
+    std::unordered_map<Board, int> &all_memo) {
+  if (rem < st.score) return Type::NONE;
+  if (st.bd.is_goal()) return Type::GOAL;
+  auto itr = all_memo.find(st.bd);
+  if (itr != std::end(all_memo) && itr->second < st.score) return Type::NONE;
+  itr = memo.find(st.bd);
+  if (itr != std::end(memo) && itr->second <= st.score) return Type::NONE;
+  all_memo[st.bd] = memo[st.bd] = st.score;
+  return Type::DFS;
+}
 boost::optional<std::tuple<std::vector<pos>, int>> dfs(const State &st, int rem,
     std::unordered_map<Board, int> &memo,
     std::unordered_map<Board, int> &all_memo) {
-  if (rem < st.score) return boost::none;
-  if (st.bd.is_goal()) return std::make_tuple(std::vector<pos>(), st.score);
-  auto itr = all_memo.find(st.bd);
-  if (itr != std::end(all_memo) && itr->second < st.score) return boost::none;
-  itr = memo.find(st.bd);
-  if (itr != std::end(memo) && itr->second <= st.score) return boost::none;
-  all_memo[st.bd] = memo[st.bd] = st.score;
+  switch(need_dfs(st, rem, memo, all_memo)) {
+    case Type::NONE: return boost::none;
+    case Type::GOAL: return std::make_tuple(std::vector<pos>(), st.score);
+    default:;
+  }
   int min_score = 100000000;
   std::vector<pos> res;
   for (auto next : next_states(st)) {
