@@ -285,8 +285,8 @@ std::vector<std::tuple<State, pos>> next_states(const State &st) {
   std::vector<std::tuple<State, pos>> res;
   for (int i = 0; i < 10; ++i) {
     for (int j = -1; j < 13; ++j) {
-      if (auto opt_state = try_move(st, i, j)) {
-        res.emplace_back(*std::move(opt_state), pos(i, j));
+      if (auto opt_state = try_move(st, j, i)) {
+        res.emplace_back(*std::move(opt_state), pos(j, i));
       }
     }
   }
