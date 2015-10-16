@@ -57,6 +57,18 @@ void simulate(State state) {
   std::cerr << "score: " << state.score << std::endl;
 }
 
+void calc(State state) {
+  std::string line;
+  while(std::getline(std::cin, line)) {
+    std::stringstream ss;
+    ss << line;
+    int x, y;
+    ss >> y >> x;
+    state = *try_move(state, x, y);
+  }
+  std::cout << "score: " << state.score << std::endl;
+}
+
 int main(int argc, char **argv) {
   if (argc < 3) {
     std::cerr << "usage: " << argv[0] << " COMMAND INPUT" << std::endl;
@@ -64,6 +76,7 @@ int main(int argc, char **argv) {
     std::cerr << "	play play game" << std::endl;
     std::cerr << "	solve run solver" << std::endl;
     std::cerr << "	simulate simulation" << std::endl;
+    std::cerr << "	calc calculate score" << std::endl;
     return 1;
   }
   State state(board_from_file(argv[2]));
@@ -74,6 +87,8 @@ int main(int argc, char **argv) {
     solve(state);
   } else if (command == "simulate") {
     simulate(state);
+  } else if (command == "calc") {
+    calc(state);
   }
   return 0;
 }
