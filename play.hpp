@@ -27,6 +27,9 @@ struct pos : public boost::operators<pos> {
 inline bool operator==(const pos &lhs, const pos &rhs) {
   return lhs.x == rhs.x && lhs.y == rhs.y;
 }
+inline bool operator<(const pos &lhs, const pos &rhs) {
+  return lhs.x == rhs.x ? lhs.y < rhs.y : lhs.x < rhs.x;
+}
 
 // (next_board, elapsed_time)
 boost::optional<State> try_move(const State &, int x, int y);
