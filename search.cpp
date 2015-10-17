@@ -198,7 +198,7 @@ std::vector<pos> beam_search(const State &st) {
 boost::optional<std::vector<pos>> random_walk_impl(
     const State &st, set_t &memo, std::mt19937 &mt, uint64_t &count) {
   if (st.bd.is_goal()) return std::vector<pos>();
-  if (count % 10000 == 0) std::cout << count << std::endl;
+  if (count % 10000 == 0) std::cerr << count << std::endl;
   ++count;
   memo.insert(st.bd.units);
   auto nexts = next_states(st);
