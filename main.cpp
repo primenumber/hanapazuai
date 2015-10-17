@@ -66,11 +66,21 @@ void calc(State state) {
     ss >> y >> x;
     state = *try_move(state, x, y);
   }
-  std::cout << "score: " << state.score << std::endl;
+  if (state.bd.is_goal())
+    std::cout << "score: " << state.score << std::endl;
+  else
+    std::cout << "error" << std::endl;
 }
 
 void random_walk_search(State state) {
   auto res = random_walk(state);
+  for (pos &p : res) {
+    std::cout << p.y << ' ' << p.x << std::endl;
+  }
+}
+
+void beam(State state) {
+  auto res = beam_search(state);
   for (pos &p : res) {
     std::cout << p.y << ' ' << p.x << std::endl;
   }
@@ -85,6 +95,7 @@ int main(int argc, char **argv) {
     std::cerr << "	simulate simulation" << std::endl;
     std::cerr << "	calc calculate score" << std::endl;
     std::cerr << "	rand random walk search" << std::endl;
+    std::cerr << "	beam beam search" << std::endl;
     return 1;
   }
   State state(board_from_file(argv[2]));
@@ -99,6 +110,8 @@ int main(int argc, char **argv) {
     calc(state);
   } else if (command == "random") {
     random_walk_search(state);
+  } else if (command == "beam") {
+    beam(state);
   } else {
     std::cerr << "unknown command: " << command << std::endl;
   }
