@@ -18,11 +18,11 @@ int char2dir(char);
 int char2clr(char);
 
 struct Seed : public boost::operators<Seed> {
-  char color;
-  char dir;
-  char x;
-  char y;
-  bool is_bloomed;
+  uint16_t color : 2;
+  uint16_t dir : 2;
+  uint16_t x : 4;
+  uint16_t y : 4;
+  uint16_t is_bloomed : 1;
   Seed() = default;
   Seed(int color, int dir, int x, int y, bool is_bloomed)
     : color(color), dir(dir), x(x), y(y), is_bloomed(is_bloomed) {}
@@ -35,10 +35,10 @@ std::pair<int, int> bloom_pos(const Seed &);
 bool operator==(const Seed &, const Seed &);
 
 struct Block : public boost::operators<Block> {
-  char x;
-  char y;
-  char w;
-  char h;
+  uint16_t x : 4;
+  uint16_t y : 4;
+  uint16_t w : 4;
+  uint16_t h : 4;
   Block() = default;
   Block(int x, int y, int w, int h)
     : x(x), y(y), w(w), h(h) {}
