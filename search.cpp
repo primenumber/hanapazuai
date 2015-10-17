@@ -143,6 +143,58 @@ std::vector<pos> find_answer(const State &st) {
   }
   return std::vector<pos>();
 }
+int score(const units_t &units) {
+  int count = 0;
+  int pot = 0;
+  for (auto &u : units) {
+    if (u.is_seed())
+      if (u.seed.is_bloomed)
+        ++count;
+    pot += u.y();
+  }
+  return count * 35 - pot;
+}
+bool operator<(const State &lhs, const State &rhs) {
+  return score(lhs.bd.units) > score(rhs.bd.units);
+}
+struct Game {
+  State st;
+  std::vector<pos> history;
+  Game(const State &st, const std::vector<pos> &his)
+    : st(st), history(his) {}
+  Game(const State &st)
+    : st(st), history() {}
+};
+bool operator<(const Game &lhs, const Game &rhs) {
+  return lhs.st < rhs.st;
+}
+std::vector<pos> beam_search(const State &st) {
+  set_t memo;
+  std::vector<Game> beam(1, Game(st));
+  constexpr int MAX_BEAM = 10000;
+  while (!beam.empty()) {
+    std::vector<Game> nexts;
+    for (const Game &g : beam) {
+      for (auto next : next_states(g.st)) {
+        State nx;
+        pos p;
+        std::tie(nx, p) = next;
+        if (memo.count(nx.bd.units) != 0) continue;
+        memo.insert(nx.bd.units);
+        auto his = g.history;
+        his.push_back(p);
+        if (nx.bd.is_goal()) return his;
+        nexts.emplace_back(nx, his);
+      }
+    }
+    if (nexts.size() > MAX_BEAM) {
+      std::sort(std::begin(nexts), std::end(nexts));
+      nexts.erase(std::begin(nexts) + MAX_BEAM, std::end(nexts));
+    }
+    std::swap(beam, nexts);
+  }
+  return std::vector<pos>();
+}
 boost::optional<std::vector<pos>> random_walk_impl(
     const State &st, set_t &memo, std::mt19937 &mt, uint64_t &count) {
   if (st.bd.is_goal()) return std::vector<pos>();

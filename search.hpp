@@ -6,3 +6,4 @@
 
 std::vector<pos> find_answer(const State &);
 std::vector<pos> random_walk(const State &);
+std::vector<pos> beam_search(const State &);
