@@ -1,5 +1,8 @@
 #include "search.hpp"
 #include <iostream>
+#include <thread>
+#include <vector>
+#include <mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/optional.hpp>
@@ -168,27 +171,55 @@ struct Game {
 bool operator<(const Game &lhs, const Game &rhs) {
   return lhs.st < rhs.st;
 }
+std::mutex m, n, r;
+void calc_next(
+    int i, int thread_num,
+    const std::vector<Game> &beam,
+    std::vector<Game> &nexts,
+    set_t &memo,
+    std::vector<std::vector<pos>> &ans) {
+  for (int j = i; j < (int)beam.size(); j += thread_num) {
+    const Game &g = beam[j];
+    for (auto next : next_states(g.st)) {
+      State nx;
+      pos p;
+      std::tie(nx, p) = next;
+      std::unique_lock<std::mutex> lock(m);
+      if (memo.count(nx.bd.units) != 0) continue;
+      memo.insert(nx.bd.units);
+      lock.unlock();
+      auto his = g.history;
+      his.push_back(p);
+      if (nx.bd.is_goal()) {
+        std::unique_lock<std::mutex> gl(r);
+        ans.emplace_back(his);
+      }
+      std::unique_lock<std::mutex> lock2(n);
+      nexts.emplace_back(nx, his);
+    }
+  }
+}
 std::vector<pos> beam_search(const State &st) {
   set_t memo;
   std::vector<Game> beam(1, Game(st));
-  constexpr int MAX_BEAM = 10000;
-  while (!beam.empty()) {
+  constexpr int MAX_BEAM = 300000;
+  std::vector<std::vector<pos>> ans;
+  while (!beam.empty() && ans.empty()) {
     std::vector<Game> nexts;
-    for (const Game &g : beam) {
-      for (auto next : next_states(g.st)) {
-        State nx;
-        pos p;
-        std::tie(nx, p) = next;
-        if (memo.count(nx.bd.units) != 0) continue;
-        memo.insert(nx.bd.units);
-        auto his = g.history;
-        his.push_back(p);
-        if (nx.bd.is_goal()) return his;
-        nexts.emplace_back(nx, his);
+    std::vector<std::thread> th;
+    int thread_num = std::thread::hardware_concurrency();
+    if (thread_num > 1) {
+      for (int i = 0; i < thread_num; ++i) {
+        th.emplace_back(
+            calc_next, i, thread_num, std::cref(beam), std::ref(nexts),
+            std::ref(memo), std::ref(ans));
       }
+      for (int i = 0; i < thread_num; ++i) th[i].join();
+    } else {
+      calc_next(0, 1, beam, nexts, memo, ans);
     }
     if (nexts.size() > MAX_BEAM) {
-      std::sort(std::begin(nexts), std::end(nexts));
+      std::nth_element(std::begin(nexts), std::begin(nexts) + MAX_BEAM, std::end(nexts));
       nexts.erase(std::begin(nexts) + MAX_BEAM, std::end(nexts));
     }
     std::swap(beam, nexts);
