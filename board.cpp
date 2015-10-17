@@ -77,6 +77,9 @@ bool operator<(const Unit &lhs, const Unit &rhs) {
   if (lb == rb) return lhs.x() < rhs.x();
   else return lb > rb;
 }
+bool bin_less(const Unit &lhs, const Unit &rhs) {
+  return memcmp(&lhs, &rhs, sizeof(Unit));
+}
 bool Board::is_goal() const {
   for (const Unit &u : units)
     if (u.is_seed() && !u.seed.is_bloomed) return false;
@@ -85,8 +88,8 @@ bool Board::is_goal() const {
 bool operator==(const Board &lhs, const Board &rhs) {
   if (lhs.tb != rhs.tb) return false;
   std::vector<Unit> lunits = lhs.units, runits = rhs.units;
-  std::sort(std::begin(lunits), std::end(lunits));
-  std::sort(std::begin(runits), std::end(runits));
+  std::sort(std::begin(lunits), std::end(lunits), bin_less);
+  std::sort(std::begin(runits), std::end(runits), bin_less);
   return lunits == runits;
 }
 

@@ -18,10 +18,10 @@ int char2dir(char);
 int char2clr(char);
 
 struct Seed : public boost::operators<Seed> {
-  int color;
-  int dir;
-  int x;
-  int y;
+  char color;
+  char dir;
+  char x;
+  char y;
   bool is_bloomed;
   Seed() = default;
   Seed(int color, int dir, int x, int y, bool is_bloomed)
@@ -35,10 +35,10 @@ std::pair<int, int> bloom_pos(const Seed &);
 bool operator==(const Seed &, const Seed &);
 
 struct Block : public boost::operators<Block> {
-  int x;
-  int y;
-  int w;
-  int h;
+  char x;
+  char y;
+  char w;
+  char h;
   Block() = default;
   Block(int x, int y, int w, int h)
     : x(x), y(y), w(w), h(h) {}
@@ -69,6 +69,7 @@ struct Unit : public boost::operators<Unit> {
 };
 bool operator==(const Unit &, const Unit &);
 bool operator<(const Unit &, const Unit &);
+bool bin_less(const Unit &, const Unit &);
 
 struct Board {
   b_ary tb;
@@ -109,7 +110,7 @@ class hash<vector<Unit>> {
   size_t operator()(const vector<Unit> &units) const {
     size_t res = 0;
     vector<Unit> cp = units;
-    sort(begin(cp), end(cp));
+    sort(begin(cp), end(cp), bin_less);
     for (const Unit &u : cp) {
       res += hash<Unit>()(u);
       res *= 17;
