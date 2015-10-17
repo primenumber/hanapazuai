@@ -78,7 +78,7 @@ bool operator<(const Unit &lhs, const Unit &rhs) {
   else return lb > rb;
 }
 bool bin_less(const Unit &lhs, const Unit &rhs) {
-  return memcmp(&lhs, &rhs, sizeof(Unit));
+  return memcmp(&lhs, &rhs, sizeof(Unit)) < 0;
 }
 bool Board::is_goal() const {
   for (const Unit &u : units)
