@@ -69,6 +69,13 @@ void calc(State state) {
   std::cout << "score: " << state.score << std::endl;
 }
 
+void random_walk_search(State state) {
+  auto res = random_walk(state);
+  for (pos &p : res) {
+    std::cout << p.y << ' ' << p.x << std::endl;
+  }
+}
+
 int main(int argc, char **argv) {
   if (argc < 3) {
     std::cerr << "usage: " << argv[0] << " COMMAND INPUT" << std::endl;
@@ -77,6 +84,7 @@ int main(int argc, char **argv) {
     std::cerr << "	solve run solver" << std::endl;
     std::cerr << "	simulate simulation" << std::endl;
     std::cerr << "	calc calculate score" << std::endl;
+    std::cerr << "	rand random walk search" << std::endl;
     return 1;
   }
   State state(board_from_file(argv[2]));
@@ -89,6 +97,10 @@ int main(int argc, char **argv) {
     simulate(state);
   } else if (command == "calc") {
     calc(state);
+  } else if (command == "random") {
+    random_walk_search(state);
+  } else {
+    std::cerr << "unknown command: " << command << std::endl;
   }
   return 0;
 }
