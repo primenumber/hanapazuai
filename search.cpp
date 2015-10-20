@@ -150,26 +150,29 @@ int score(const units_t &units) {
   int count = 0;
   int pot = 0;
   for (auto &u : units) {
-    if (u.is_seed())
+    if (u.is_seed()) {
       if (u.seed.is_bloomed)
         ++count;
-    pot += u.y();
+      else
+        pot += u.y();
+    }
   }
   return count * 35 - pot;
 }
-bool operator<(const State &lhs, const State &rhs) {
-  return score(lhs.bd.units) > score(rhs.bd.units);
-}
 struct Game {
+  int val;
   State st;
   std::vector<pos> history;
+  Game()
+    : val(0), st(), history() {}
   Game(const State &st, const std::vector<pos> &his)
-    : st(st), history(his) {}
+    : val(score(st.bd.units)), st(st), history(his) {}
   Game(const State &st)
-    : st(st), history() {}
+    : val(score(st.bd.units)), st(st), history() {}
+  ~Game() = default;
 };
 bool operator<(const Game &lhs, const Game &rhs) {
-  return lhs.st < rhs.st;
+  return lhs.val > rhs.val;
 }
 std::mutex m, n, r;
 void calc_next(
@@ -202,7 +205,7 @@ void calc_next(
 std::vector<pos> beam_search(const State &st) {
   set_t memo;
   std::vector<Game> beam(1, Game(st));
-  constexpr int MAX_BEAM = 300000;
+  constexpr int MAX_BEAM = 30000;
   std::vector<std::vector<pos>> ans;
   while (!beam.empty() && ans.empty()) {
     std::vector<Game> nexts;
@@ -224,6 +227,12 @@ std::vector<pos> beam_search(const State &st) {
     }
     std::swap(beam, nexts);
   }
+  if (ans.empty()) {
+    return std::vector<pos>();
+  } else {
+    return ans.front();
+  }
+}
   return std::vector<pos>();
 }
 boost::optional<std::vector<pos>> random_walk_impl(
