@@ -86,6 +86,13 @@ void beam(State state) {
   }
 }
 
+void astar(State state) {
+  auto res = astar_search(state);
+  for (pos &p : res) {
+    std::cout << p.y << ' ' << p.x << std::endl;
+  }
+}
+
 int main(int argc, char **argv) {
   if (argc < 3) {
     std::cerr << "usage: " << argv[0] << " COMMAND INPUT" << std::endl;
@@ -112,6 +119,8 @@ int main(int argc, char **argv) {
     random_walk_search(state);
   } else if (command == "beam") {
     beam(state);
+  } else if (command == "astar") {
+    astar(state);
   } else {
     std::cerr << "unknown command: " << command << std::endl;
   }
