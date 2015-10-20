@@ -3,6 +3,7 @@
 #include <thread>
 #include <vector>
 #include <mutex>
+#include <queue>
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/optional.hpp>
@@ -233,6 +234,66 @@ std::vector<pos> beam_search(const State &st) {
     return ans.front();
   }
 }
+int inf_dist(const Board &bd) {
+  std::array<std::vector<pos>, 3> flowers_pos;
+  for (int i = 0; i < 10; ++i)
+    for (int j = 0; j < 14; ++j)
+      if (char2clr(bd.tb[i][j]) >= 0)
+        flowers_pos[char2clr(bd.tb[i][j])].emplace_back(j, i);
+  int max_vdist = 0, max_hdist = 0;
+  for (const Unit &u : bd.units)
+    if (u.is_seed() && !u.seed.is_bloomed) {
+      int min_vdist = 10000, min_hdist = 10000;
+      for (pos p : flowers_pos[u.seed.color]) {
+        min_vdist = std::min(min_vdist,
+            std::max(0, std::max((u.y() - p.y - 1) * 35,
+              (p.y - u.y() - 1) * 2)));
+        min_hdist = std::min(min_hdist,
+            std::max(0, (std::abs(u.x() - p.x) - 1) * 10));
+      }
+      for (const Unit &v : bd.units)
+        if (v.is_seed() && v.seed.is_bloomed && v.seed.color == u.seed.color) {
+          int vx, vy;
+          std::tie(vx, vy) = bloom_pos(v.seed);
+          min_vdist = std::min(min_vdist, std::max(0, (std::abs(u.y() - vy) - 1) * 2));
+          min_hdist = std::min(min_hdist, std::max(0, (std::abs(u.x() - vx) - 1) * 10));
+        }
+      max_vdist = std::max(max_vdist, min_vdist);
+      max_hdist = std::max(max_hdist, min_hdist);
+    }
+  return max_hdist + max_vdist;
+}
+std::vector<pos> astar_search(const State &st) {
+  map_t memo;
+  using T = std::tuple<int, Game>;
+  std::priority_queue<T, std::vector<T>, std::greater<T>> que;
+  que.emplace(inf_dist(st.bd), Game(st));
+  memo[st.bd.units] = inf_dist(st.bd);
+  int minimum_score = inf_dist(st.bd);
+  while (!que.empty()) {
+    int score;
+    Game g;
+    std::tie(score, g) = que.top();
+    que.pop();
+    if (minimum_score < score) {
+      std::cerr << score << std::endl;
+      minimum_score = score;
+    }
+    if (g.st.bd.is_goal()) return g.history;
+    for (const auto &next : next_states(g.st)) {
+      State nx;
+      pos p;
+      std::tie(nx, p) = next;
+      int nx_score = inf_dist(nx.bd) + nx.score;
+      auto itr = memo.find(nx.bd.units);
+      if (itr == std::end(memo) || std::get<1>(*itr) > nx_score) {
+        auto his = g.history;
+        his.push_back(p);
+        que.emplace(nx_score, Game(nx, his));
+        memo[nx.bd.units] = nx_score;
+      }
+    }
+  }
   return std::vector<pos>();
 }
 boost::optional<std::vector<pos>> random_walk_impl(
