@@ -46,7 +46,7 @@ struct Block : public boost::operators<Block> {
 bool operator==(const Block &, const Block &);
 
 struct Unit : public boost::operators<Unit> {
-  int type;
+  char type;
   union {
     Seed seed;
     Block block;
