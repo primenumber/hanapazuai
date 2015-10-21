@@ -292,40 +292,83 @@ int inf_dist(const Board &bd) {
   int vdist = v_flower ? max_v_lift : max_vdist;
   return hdist + vdist;
 }
-std::vector<pos> astar_search(const State &st) {
-  map_t memo;
-  using T = std::tuple<int, Game>;
-  std::priority_queue<T, std::vector<T>, std::greater<T>> que;
-  que.emplace(inf_dist(st.bd), Game(st));
-  memo[st.bd.units] = inf_dist(st.bd);
-  int minimum_score = inf_dist(st.bd);
-  while (!que.empty()) {
+using T = std::tuple<int, Game>;
+using queue_t = std::priority_queue<T, std::vector<T>, std::greater<T>>;
+std::mutex mtx, mtx_memo;
+bool check_memo(map_t &memo, const units_t &u, int score) {
+  std::unique_lock<std::mutex> lck(mtx_memo);
+  auto itr = memo.find(u);
+  if (itr == std::end(memo)) return false;
+  return std::get<1>(*itr) < score;
+}
+bool check_and_set_memo(map_t &memo, const units_t &u, int score) {
+  std::unique_lock<std::mutex> lck(mtx_memo);
+  auto itr = memo.find(u);
+  if (itr == std::end(memo)) {
+    memo[u] = score;
+    return true;
+  } else if (std::get<1>(*itr) > score) {
+    memo[u] = score;
+    return true;
+  } else {
+    return false;
+  }
+}
+void search_impl(map_t &memo, queue_t &que,
+    std::vector<std::vector<pos>> &ans, int &minimum_score, int i) {
+  while (ans.empty()) {
     int score;
     Game g;
+    std::unique_lock<std::mutex> lock(mtx);
+    if (que.empty()) break;
     std::tie(score, g) = que.top();
     que.pop();
+    lock.unlock();
     if (minimum_score < score) {
-      std::cerr << score << std::endl;
+      std::cerr << score << ' ' << i << std::endl;
       minimum_score = score;
     }
-    auto itr = memo.find(g.st.bd.units);
-    if (score > std::get<1>(*itr)) continue;
-    if (g.st.bd.is_goal()) return g.history;
+    if (check_memo(memo, g.st.bd.units, score)) continue;
+    if (g.st.bd.is_goal()) {
+      mtx.lock();
+      ans.push_back(g.history);
+      mtx.unlock();
+      return;
+    }
     for (const auto &next : next_states(g.st)) {
       State nx;
       pos p;
       std::tie(nx, p) = next;
       int nx_score = inf_dist(nx.bd) + nx.score;
-      auto itr = memo.find(nx.bd.units);
-      if (itr == std::end(memo) || std::get<1>(*itr) > nx_score) {
+      if (check_and_set_memo(memo, nx.bd.units, nx_score)) {
         auto his = g.history;
         his.push_back(p);
+        mtx.lock();
         que.emplace(nx_score, Game(nx, his));
-        memo[nx.bd.units] = nx_score;
+        mtx.unlock();
       }
     }
   }
-  return std::vector<pos>();
+}
+std::vector<pos> astar_search(const State &st) {
+  map_t memo;
+  std::priority_queue<T, std::vector<T>, std::greater<T>> que;
+  que.emplace(inf_dist(st.bd), Game(st));
+  memo[st.bd.units] = inf_dist(st.bd);
+  int minimum_score = inf_dist(st.bd);
+  std::vector<std::vector<pos>> ans;
+  std::vector<std::thread> th;
+  for (int i = 0; i < std::thread::hardware_concurrency(); ++i) {
+    th.emplace_back(search_impl, std::ref(memo), std::ref(que), std::ref(ans), std::ref(minimum_score), i);
+    timespec ts;
+    ts.tv_sec = 1;
+    ts.tv_nsec = 0;
+    nanosleep(&ts, nullptr);
+  }
+  for (auto &t : th) {
+    t.join();
+  }
+  return ans.front();
 }
 boost::optional<std::vector<pos>> random_walk_impl(
     const State &st, set_t &memo, std::mt19937 &mt, uint64_t &count) {
