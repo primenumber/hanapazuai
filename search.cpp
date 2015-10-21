@@ -258,13 +258,21 @@ int inf_dist(const Board &bd) {
       if (char2clr(bd.tb[i][j]) >= 0)
         flowers_pos[char2clr(bd.tb[i][j])].emplace_back(j, i);
   int max_vdist = 0, max_hdist = 0;
+  int sum_hdist = 0;
+  int max_v_lift = 0;
+  bool v_flower = false, h_flower = false;
   for (const Unit &u : bd.units)
     if (u.is_seed() && !u.seed.is_bloomed) {
       int min_vdist = 10000, min_hdist = 10000;
+      int min_lift = 1000;
+      if (u.seed.dir % 2 == 1)
+        h_flower = true;
+      else
+        v_flower = true;
       for (pos p : flowers_pos[u.seed.color]) {
-        min_vdist = std::min(min_vdist,
-            std::max(0, std::max((u.y() - p.y - 1) * 35,
-              (p.y - u.y() - 1) * 2)));
+        if (u.y() > p.y) min_lift = std::min(min_lift, (u.y() - p.y - 1) * 35);
+        else if (p.y > u.y()) min_vdist = std::min(min_vdist, (p.y - u.y() - 1) * 2);
+        else min_vdist = 0;
         min_hdist = std::min(min_hdist,
             std::max(0, (std::abs(u.x() - p.x) - 1) * 10));
       }
@@ -275,10 +283,14 @@ int inf_dist(const Board &bd) {
           min_vdist = std::min(min_vdist, std::max(0, (std::abs(u.y() - vy) - 1) * 2));
           min_hdist = std::min(min_hdist, std::max(0, (std::abs(u.x() - vx) - 1) * 10));
         }
+      max_v_lift = std::max(max_v_lift, std::min(min_vdist, min_lift));
       max_vdist = std::max(max_vdist, min_vdist);
       max_hdist = std::max(max_hdist, min_hdist);
+      sum_hdist += min_hdist;
     }
-  return max_hdist + max_vdist;
+  int hdist = h_flower ? (max_hdist + 35) : sum_hdist;
+  int vdist = v_flower ? max_v_lift : max_vdist;
+  return hdist + vdist;
 }
 std::vector<pos> astar_search(const State &st) {
   map_t memo;
