@@ -292,6 +292,8 @@ std::vector<pos> astar_search(const State &st) {
       std::cerr << score << std::endl;
       minimum_score = score;
     }
+    auto itr = memo.find(g.st.bd.units);
+    if (score > std::get<1>(*itr)) continue;
     if (g.st.bd.is_goal()) return g.history;
     for (const auto &next : next_states(g.st)) {
       State nx;
