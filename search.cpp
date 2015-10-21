@@ -212,7 +212,10 @@ std::vector<pos> beam_search(const State &st) {
   std::vector<Game> beam(1, Game(st));
   constexpr int MAX_BEAM = 30000;
   std::vector<std::vector<pos>> ans;
+  int count = 0;
   while (!beam.empty()) {
+    std::cerr << count << ' ' << beam.size() << std::endl;
+    ++count;
     std::vector<Game> nexts;
     std::vector<std::thread> th;
     int thread_num = std::thread::hardware_concurrency();
@@ -226,6 +229,7 @@ std::vector<pos> beam_search(const State &st) {
     } else {
       calc_next(0, 1, beam, nexts, memo, ans);
     }
+    std::cerr << "beam: " << nexts.size() << std::endl;
     if (nexts.size() > MAX_BEAM) {
       std::nth_element(std::begin(nexts), std::begin(nexts) + MAX_BEAM, std::end(nexts));
       nexts.erase(std::begin(nexts) + MAX_BEAM, std::end(nexts));
