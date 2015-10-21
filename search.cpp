@@ -147,6 +147,7 @@ std::vector<pos> find_answer(const State &st) {
   }
   return std::vector<pos>();
 }
+int inf_dist(const Board &);
 int score(const units_t &units) {
   int count = 0;
   int pot = 0;
@@ -158,7 +159,10 @@ int score(const units_t &units) {
         pot += u.y();
     }
   }
-  return count * 35 - pot * 5;
+  return count * 35 - pot * 10;
+}
+int score(const Board &bd) {
+  return score(bd.units) - inf_dist(bd);
 }
 struct Game {
   int val;
@@ -167,9 +171,9 @@ struct Game {
   Game()
     : val(0), st(), history() {}
   Game(const State &st, const std::vector<pos> &his)
-    : val(score(st.bd.units)), st(st), history(his) {}
+    : val(score(st.bd)), st(st), history(his) {}
   Game(const State &st)
-    : val(score(st.bd.units)), st(st), history() {}
+    : val(score(st.bd)), st(st), history() {}
   ~Game() = default;
 };
 bool operator<(const Game &lhs, const Game &rhs) {
