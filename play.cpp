@@ -292,3 +292,12 @@ std::vector<std::tuple<State, pos>> next_states(const State &st) {
   }
   return res;
 }
+State simulate(const State &st, const std::vector<pos> &vp) {
+  State state = st;
+  for (const pos p : vp) {
+    auto opt_st = try_move(state, p.x, p.y);
+    assert(opt_st);
+    state = *opt_st;
+  }
+  return state;
+}
