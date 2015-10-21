@@ -158,7 +158,7 @@ int score(const units_t &units) {
         pot += u.y();
     }
   }
-  return count * 35 - pot;
+  return count * 35 - pot * 5;
 }
 struct Game {
   int val;
