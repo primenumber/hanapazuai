@@ -208,7 +208,7 @@ std::vector<pos> beam_search(const State &st) {
   std::vector<Game> beam(1, Game(st));
   constexpr int MAX_BEAM = 30000;
   std::vector<std::vector<pos>> ans;
-  while (!beam.empty() && ans.empty()) {
+  while (!beam.empty()) {
     std::vector<Game> nexts;
     std::vector<std::thread> th;
     int thread_num = std::thread::hardware_concurrency();
@@ -231,7 +231,16 @@ std::vector<pos> beam_search(const State &st) {
   if (ans.empty()) {
     return std::vector<pos>();
   } else {
-    return ans.front();
+    std::vector<pos> res;
+    int min_time = 1000000;
+    for (const auto &vp : ans) {
+      int score = simulate(st, vp).score;
+      if (min_time > score) {
+        res = vp;
+        min_time = score;
+      }
+    }
+    return res;
   }
 }
 int inf_dist(const Board &bd) {
